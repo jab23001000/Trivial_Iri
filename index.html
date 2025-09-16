@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="robots" content="noindex">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Juego Trivial</title>
+  <title>Trivial Especial</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -24,15 +24,8 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       text-align: center;
     }
-    h1 {
-      text-align: center;
-    }
-    .question {
-      display: none;
+    h1, h2 {
       margin-bottom: 20px;
-    }
-    .question.active {
-      display: block;
     }
     input[type="text"], input[type="number"] {
       width: 100%;
@@ -41,12 +34,13 @@
     }
     button {
       margin-top: 10px;
-      padding: 8px 12px;
+      padding: 10px 16px;
       background: #0077cc;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 1em;
     }
     button:hover {
       background: #005fa3;
@@ -69,13 +63,20 @@
       font-size: 2em;
       font-weight: bold;
       z-index: 9999;
+      text-align: center;
+      padding: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Juego Trivial</h1>
+  <div class="container" id="landing">
+    <h1>Bienvenidos Iñigo y Ainara</h1>
+    <h2>¿Listos para comenzar vuestro Trivial?</h2>
+    <button onclick="startGame()">Comenzar</button>
+  </div>
 
+  <div class="container" id="game" style="display:none;">
+    <h1>Juego Trivial</h1>
     <div id="quiz"></div>
     <div id="message" class="result"></div>
   </div>
@@ -84,19 +85,22 @@
     // ============================
     // 🔧 CONFIGURACIÓN DE PREGUNTAS
     // ============================
-    // q = Pregunta
-    // a = Respuesta correcta (minúsculas)
-    // n = Número que el jugador debe anotar si acierta
     const questions = [
       { q: "¿Cuánto es 5 + 3?", a: "8", n: 12 },
       { q: "Capital de Francia:", a: "paris", n: 7 },
       { q: "¿Cuál es el planeta más grande del sistema solar?", a: "jupiter", n: 5 },
       { q: "¿En qué continente está Egipto?", a: "africa", n: 9 }
-      // La última será especial → comprobar suma
     ];
 
     let currentQuestion = 0;
     let collectedNumbers = [];
+
+    // Mostrar landing y luego juego
+    function startGame() {
+      document.getElementById("landing").style.display = "none";
+      document.getElementById("game").style.display = "block";
+      showQuestion();
+    }
 
     // Mostrar una pregunta
     function showQuestion() {
@@ -153,9 +157,6 @@
         alert("Respuesta incorrecta. Revisa tus números.");
       }
     }
-
-    // Iniciar juego
-    showQuestion();
   </script>
 </body>
 </html>
