@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="robots" content="noindex"> <!-- Evita que Google indexe la página -->
+  <meta name="robots" content="noindex">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Juego Trivial</title>
   <style>
@@ -22,6 +22,7 @@
       width: 90%;
       max-width: 500px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      text-align: center;
     }
     h1 {
       text-align: center;
@@ -33,7 +34,7 @@
     .question.active {
       display: block;
     }
-    input[type="text"] {
+    input[type="text"], input[type="number"] {
       width: 100%;
       padding: 8px;
       margin-top: 8px;
@@ -51,10 +52,23 @@
       background: #005fa3;
     }
     .result {
-      text-align: center;
       font-size: 1.2em;
       font-weight: bold;
+      margin-top: 10px;
       color: green;
+    }
+    .full-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #007700;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      font-weight: bold;
+      z-index: 9999;
     }
   </style>
 </head>
@@ -63,30 +77,35 @@
     <h1>Juego Trivial</h1>
 
     <div id="quiz"></div>
-    <div id="result" class="result"></div>
+    <div id="message" class="result"></div>
   </div>
 
   <script>
     // ============================
     // 🔧 CONFIGURACIÓN DE PREGUNTAS
     // ============================
-    // Aquí editas las preguntas y respuestas correctas.
-    // IMPORTANTE: las respuestas deben ir en minúsculas.
+    // q = Pregunta
+    // a = Respuesta correcta (minúsculas)
+    // n = Número que el jugador debe anotar si acierta
     const questions = [
-      { q: "¿Cuánto es 5 + 3?", a: "8" },
-      { q: "Capital de Francia:", a: "paris" },
-      { q: "¿Cuál es el planeta más grande del sistema solar?", a: "jupiter" },
-      { q: "¿En qué continente está Egipto?", a: "africa" },
-      { q: "¿Quién pintó la Mona Lisa?", a: "leonardo da vinci" }
+      { q: "¿Cuánto es 5 + 3?", a: "8", n: 12 },
+      { q: "Capital de Francia:", a: "paris", n: 7 },
+      { q: "¿Cuál es el planeta más grande del sistema solar?", a: "jupiter", n: 5 },
+      { q: "¿En qué continente está Egipto?", a: "africa", n: 9 }
+      // La última será especial → comprobar suma
     ];
 
     let currentQuestion = 0;
+    let collectedNumbers = [];
 
-    // Renderiza la primera pregunta
+    // Mostrar una pregunta
     function showQuestion() {
+      const quizDiv = document.getElementById("quiz");
+      document.getElementById("message").textContent = "";
+
       if (currentQuestion < questions.length) {
         const q = questions[currentQuestion];
-        document.getElementById("quiz").innerHTML = `
+        quizDiv.innerHTML = `
           <div class="question active">
             <p>${currentQuestion + 1}. ${q.q}</p>
             <input type="text" id="answer">
@@ -94,28 +113,51 @@
           </div>
         `;
       } else {
-        // Juego terminado → mostrar código secreto
-        const secretCode = Math.floor(100000 + Math.random() * 900000);
-        document.getElementById("quiz").innerHTML = "";
-        document.getElementById("result").textContent =
-          "¡Felicidades! Tu código secreto es: " + secretCode;
+        // Última fase: comprobar suma
+        quizDiv.innerHTML = `
+          <div class="question active">
+            <p>Introduce la suma de todos los números que obtuviste:</p>
+            <input type="number" id="finalAnswer">
+            <button onclick="checkFinal()">Enviar</button>
+          </div>
+        `;
       }
     }
 
-    // Comprueba la respuesta
+    // Comprobar respuesta normal
     function checkAnswer() {
       const input = document.getElementById("answer").value.trim().toLowerCase();
       if (input === questions[currentQuestion].a) {
+        const num = questions[currentQuestion].n;
+        collectedNumbers.push(num);
+
+        document.getElementById("message").textContent =
+          "¡Correcto! Tu número es: " + num + ". Anótalo.";
+
         currentQuestion++;
-        showQuestion();
+        setTimeout(showQuestion, 2000); // pasa a la siguiente en 2s
       } else {
         alert("Respuesta incorrecta. Intenta de nuevo.");
       }
     }
 
-    // Inicia el juego
+    // Comprobar la suma final
+    function checkFinal() {
+      const input = parseInt(document.getElementById("finalAnswer").value, 10);
+      const correctSum = collectedNumbers.reduce((a, b) => a + b, 0);
+
+      if (input === correctSum) {
+        document.body.innerHTML =
+          '<div class="full-screen">🎉 Pruebas completadas, solicita tu premio! 🎉</div>';
+      } else {
+        alert("Respuesta incorrecta. Revisa tus números.");
+      }
+    }
+
+    // Iniciar juego
     showQuestion();
   </script>
 </body>
 </html>
+
 
