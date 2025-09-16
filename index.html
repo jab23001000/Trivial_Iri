@@ -24,16 +24,14 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       text-align: center;
     }
-    h1, h2 {
-      margin-bottom: 20px;
-    }
+    h1, h2 { margin-bottom: 20px; }
     input[type="text"], input[type="number"] {
       width: 100%;
       padding: 8px;
       margin-top: 8px;
     }
     button {
-      margin-top: 10px;
+      margin: 10px 5px 0 5px;
       padding: 10px 16px;
       background: #0077cc;
       color: white;
@@ -42,42 +40,33 @@
       cursor: pointer;
       font-size: 1em;
     }
-    button:hover {
-      background: #005fa3;
-    }
-    .result {
-      font-size: 1.2em;
-      font-weight: bold;
-      margin-top: 10px;
-      color: green;
-    }
+    button:hover { background: #005fa3; }
+    .result { font-size: 1.2em; font-weight: bold; margin-top: 10px; color: green; }
+    .timer { font-size: 1.1em; font-weight: bold; margin: 10px; color: red; }
     .full-screen {
-      position: fixed;
-      top: 0; left: 0;
+      position: fixed; top: 0; left: 0;
       width: 100%; height: 100%;
       background: #007700;
       color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2em;
-      font-weight: bold;
-      z-index: 9999;
-      text-align: center;
-      padding: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2em; font-weight: bold;
+      z-index: 9999; text-align: center; padding: 20px;
     }
   </style>
 </head>
 <body>
+  <!-- Landing -->
   <div class="container" id="landing">
     <h1>Bienvenidos Iñigo y Ainara</h1>
     <h2>¿Listos para comenzar vuestro Trivial?</h2>
     <button onclick="startGame()">Comenzar</button>
   </div>
 
+  <!-- Juego -->
   <div class="container" id="game" style="display:none;">
     <h1>Juego Trivial</h1>
     <div id="quiz"></div>
+    <div id="timer" class="timer"></div>
     <div id="message" class="result"></div>
   </div>
 
@@ -94,58 +83,104 @@
 
     let currentQuestion = 0;
     let collectedNumbers = [];
+    let answeredCorrectly = []; // para saber si ya fue acertada
+    let timerInterval;
+    let timeLeft = 10;
 
-    // Mostrar landing y luego juego
     function startGame() {
       document.getElementById("landing").style.display = "none";
       document.getElementById("game").style.display = "block";
       showQuestion();
     }
 
-    // Mostrar una pregunta
+    function startTimer() {
+      clearInterval(timerInterval);
+      timeLeft = 10;
+      document.getElementById("timer").textContent = "Tiempo: " + timeLeft + "s";
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = "Tiempo: " + timeLeft + "s";
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert("¡Se acabó el tiempo! Vuelve a intentarlo.");
+        }
+      }, 1000);
+    }
+
     function showQuestion() {
+      clearInterval(timerInterval);
       const quizDiv = document.getElementById("quiz");
       document.getElementById("message").textContent = "";
 
       if (currentQuestion < questions.length) {
         const q = questions[currentQuestion];
+        const alreadyCorrect = answeredCorrectly[currentQuestion];
+
         quizDiv.innerHTML = `
           <div class="question active">
             <p>${currentQuestion + 1}. ${q.q}</p>
-            <input type="text" id="answer">
-            <button onclick="checkAnswer()">Comprobar</button>
+            <input type="text" id="answer" ${alreadyCorrect ? "disabled" : ""}>
+            <br>
+            <button onclick="checkAnswer()" ${alreadyCorrect ? "disabled" : ""}>Comprobar</button>
+            <button onclick="prevQuestion()" ${currentQuestion === 0 ? "disabled" : ""}>Anterior</button>
+            <button onclick="nextQuestion()" id="nextBtn" disabled>Siguiente</button>
           </div>
         `;
+
+        if (alreadyCorrect) {
+          document.getElementById("message").textContent =
+            "Ya acertaste. Tu número fue: " + questions[currentQuestion].n;
+          document.getElementById("nextBtn").disabled = false;
+        } else {
+          startTimer();
+        }
+
       } else {
-        // Última fase: comprobar suma
         quizDiv.innerHTML = `
           <div class="question active">
             <p>Introduce la suma de todos los números que obtuviste:</p>
             <input type="number" id="finalAnswer">
+            <br>
+            <button onclick="prevQuestion()">Anterior</button>
             <button onclick="checkFinal()">Enviar</button>
           </div>
         `;
+        document.getElementById("timer").textContent = "";
       }
     }
 
-    // Comprobar respuesta normal
     function checkAnswer() {
       const input = document.getElementById("answer").value.trim().toLowerCase();
       if (input === questions[currentQuestion].a) {
+        clearInterval(timerInterval);
         const num = questions[currentQuestion].n;
-        collectedNumbers.push(num);
+        collectedNumbers[currentQuestion] = num;
+        answeredCorrectly[currentQuestion] = true;
 
         document.getElementById("message").textContent =
           "¡Correcto! Tu número es: " + num + ". Anótalo.";
 
-        currentQuestion++;
-        setTimeout(showQuestion, 2000); // pasa a la siguiente en 2s
+        document.getElementById("nextBtn").disabled = false;
       } else {
         alert("Respuesta incorrecta. Intenta de nuevo.");
       }
     }
 
-    // Comprobar la suma final
+    function nextQuestion() {
+      if (answeredCorrectly[currentQuestion]) {
+        currentQuestion++;
+        showQuestion();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentQuestion > 0) {
+        currentQuestion--;
+        showQuestion();
+      }
+    }
+
     function checkFinal() {
       const input = parseInt(document.getElementById("finalAnswer").value, 10);
       const correctSum = collectedNumbers.reduce((a, b) => a + b, 0);
