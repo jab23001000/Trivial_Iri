@@ -3,193 +3,219 @@
 <head>
   <meta charset="UTF-8">
   <meta name="robots" content="noindex">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trivial Especial</title>
+  <title>Trivial Iñigo & Ainara</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
-    .container {
+    #app {
+      max-width: 600px;
       background: white;
-      padding: 20px;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       text-align: center;
     }
-    h1, h2 { margin-bottom: 20px; }
+    h1, h2, h3 {
+      margin-bottom: 1rem;
+    }
+    .hidden {
+      display: none;
+    }
     input[type="text"], input[type="number"] {
-      width: 100%;
-      padding: 8px;
-      margin-top: 8px;
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 80%;
+      margin-top: 1rem;
     }
     button {
-      margin: 10px 5px 0 5px;
-      padding: 10px 16px;
-      background: #0077cc;
-      color: white;
+      margin: 1rem 0.5rem;
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 1em;
-    }
-    button:hover { background: #005fa3; }
-    .result { font-size: 1.2em; font-weight: bold; margin-top: 10px; color: green; }
-    .timer { font-size: 1.1em; font-weight: bold; margin: 10px; color: red; }
-    .full-screen {
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: #007700;
+      background-color: #007bff;
       color: white;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2em; font-weight: bold;
-      z-index: 9999; text-align: center; padding: 20px;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #timer {
+      font-weight: bold;
+      color: #d9534f;
+      margin-top: 1rem;
+    }
+    #final-msg {
+      font-size: 1.5rem;
+      color: green;
+    }
+    #error-msg {
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <!-- Landing -->
-  <div class="container" id="landing">
-    <h1>Bienvenidos Iñigo y Ainara</h1>
-    <h2>¿Listos para comenzar vuestro Trivial?</h2>
-    <button onclick="startGame()">Comenzar</button>
-  </div>
+  <div id="app">
+    <!-- Landing -->
+    <div id="landing">
+      <h1>Bienvenidos Iñigo y Ainara</h1>
+      <h2>¿Listos para comenzar vuestro Trivial?</h2>
+      <p>
+        Vais a comenzar una serie de preguntas.<br>
+        Las deberéis responder correctamente para obtener un número que debéis anotar.<br>
+        Para cada pregunta habrá un número.<br>
+        La pregunta final será la suma de todos los números anteriores.<br>
+        Solo si este último número es correcto recibiréis el premio.
+      </p>
+      <button id="startBtn">Comenzar</button>
+    </div>
 
-  <!-- Juego -->
-  <div class="container" id="game" style="display:none;">
-    <h1>Juego Trivial</h1>
-    <div id="quiz"></div>
-    <div id="timer" class="timer"></div>
-    <div id="message" class="result"></div>
+    <!-- Juego -->
+    <div id="game" class="hidden">
+      <h2 id="question"></h2>
+      <input type="text" id="answer" placeholder="Escribe tu respuesta">
+      <div id="feedback"></div>
+      <div id="timer" class="hidden"></div>
+      <div>
+        <button id="prevBtn">Anterior</button>
+        <button id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </div>
+
+    <!-- Final -->
+    <div id="final" class="hidden">
+      <h2>Pregunta final</h2>
+      <p>Introduce la suma de todos los números obtenidos:</p>
+      <input type="number" id="finalInput">
+      <button id="checkFinalBtn">Comprobar</button>
+      <div id="error-msg"></div>
+      <div id="final-msg"></div>
+    </div>
   </div>
 
   <script>
-    // ============================
-    // 🔧 CONFIGURACIÓN DE PREGUNTAS
-    // ============================
-    const questions = [
-      { q: "¿Cuánto es 5 + 3?", a: "8", n: 12 },
-      { q: "Capital de Francia:", a: "paris", n: 7 },
-      { q: "¿Cuál es el planeta más grande del sistema solar?", a: "jupiter", n: 5 },
-      { q: "¿En qué continente está Egipto?", a: "africa", n: 9 }
+    // Preguntas
+    const preguntas = [
+      { q: "Capital de Francia", a: "paris", n: 12 },
+      { q: "5 + 7 = ?", a: "12", n: 8 },
+      { q: "Color del cielo en un día despejado", a: "azul", n: 15 },
+      { q: "¿Cuántas patas tiene una araña?", a: "8", n: 20 }
     ];
 
-    let currentQuestion = 0;
-    let collectedNumbers = [];
-    let answeredCorrectly = [];
+    let current = 0;
+    let respuestas = Array(preguntas.length).fill(null);
+    let numeros = Array(preguntas.length).fill(null);
     let timerInterval;
-    let timeLeft = 20;
+
+    const landing = document.getElementById("landing");
+    const game = document.getElementById("game");
+    const final = document.getElementById("final");
+
+    const questionEl = document.getElementById("question");
+    const answerEl = document.getElementById("answer");
+    const feedbackEl = document.getElementById("feedback");
+    const timerEl = document.getElementById("timer");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const finalInput = document.getElementById("finalInput");
+    const checkFinalBtn = document.getElementById("checkFinalBtn");
+    const errorMsg = document.getElementById("error-msg");
+    const finalMsg = document.getElementById("final-msg");
+
+    document.getElementById("startBtn").onclick = startGame;
+    prevBtn.onclick = prevQuestion;
+    nextBtn.onclick = nextQuestion;
+    checkFinalBtn.onclick = checkFinal;
+    answerEl.addEventListener("keyup", e => {
+      if (e.key === "Enter") checkAnswer();
+    });
 
     function startGame() {
-      document.getElementById("landing").style.display = "none";
-      document.getElementById("game").style.display = "block";
-      showQuestion();
+      landing.classList.add("hidden");
+      game.classList.remove("hidden");
+      loadQuestion();
     }
 
-    function startTimer() {
+    function loadQuestion() {
       clearInterval(timerInterval);
-      timeLeft = 20;
-      document.getElementById("timer").textContent = "Tiempo para anotar: " + timeLeft + "s";
-
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById("timer").textContent = "Tiempo para anotar: " + timeLeft + "s";
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          nextQuestion(); // pasa automáticamente
-        }
-      }, 1000);
-    }
-
-    function showQuestion() {
-      clearInterval(timerInterval);
-      const quizDiv = document.getElementById("quiz");
-      document.getElementById("message").textContent = "";
-      document.getElementById("timer").textContent = "";
-
-      if (currentQuestion < questions.length) {
-        const q = questions[currentQuestion];
-        const alreadyCorrect = answeredCorrectly[currentQuestion];
-
-        quizDiv.innerHTML = `
-          <div class="question active">
-            <p>${currentQuestion + 1}. ${q.q}</p>
-            <input type="text" id="answer" ${alreadyCorrect ? "disabled" : ""}>
-            <br>
-            <button onclick="checkAnswer()" ${alreadyCorrect ? "disabled" : ""}>Comprobar</button>
-            <button onclick="prevQuestion()" ${currentQuestion === 0 ? "disabled" : ""}>Anterior</button>
-            <button onclick="nextQuestion()" id="nextBtn" disabled>Siguiente</button>
-          </div>
-        `;
-
-        if (alreadyCorrect) {
-          document.getElementById("message").textContent =
-            "Ya acertaste. Tu número fue: " + questions[currentQuestion].n;
-          document.getElementById("nextBtn").disabled = false;
-        }
-
-      } else {
-        quizDiv.innerHTML = `
-          <div class="question active">
-            <p>Introduce la suma de todos los números que obtuviste:</p>
-            <input type="number" id="finalAnswer">
-            <br>
-            <button onclick="prevQuestion()">Anterior</button>
-            <button onclick="checkFinal()">Enviar</button>
-          </div>
-        `;
+      timerEl.classList.add("hidden");
+      timerEl.textContent = "";
+      answerEl.value = respuestas[current] || "";
+      feedbackEl.textContent = numeros[current] ? `¡Correcto! Tu número es: ${numeros[current]}` : "";
+      questionEl.textContent = preguntas[current].q;
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = !numeros[current];
+      answerEl.disabled = !!numeros[current];
+      if (!numeros[current]) {
+        answerEl.focus();
       }
     }
 
     function checkAnswer() {
-      const input = document.getElementById("answer").value.trim().toLowerCase();
-      if (input === questions[currentQuestion].a) {
-        const num = questions[currentQuestion].n;
-        collectedNumbers[currentQuestion] = num;
-        answeredCorrectly[currentQuestion] = true;
-
-        document.getElementById("message").textContent =
-          "¡Correcto! Tu número es: " + num + ". Anótalo.";
-        document.getElementById("nextBtn").disabled = false;
-
-        // Arranca temporizador de 20s solo tras acertar
+      const respuesta = answerEl.value.trim().toLowerCase();
+      if (respuesta === preguntas[current].a) {
+        respuestas[current] = respuesta;
+        numeros[current] = preguntas[current].n;
+        feedbackEl.textContent = `¡Correcto! Tu número es: ${numeros[current]}. Anótalo.`;
+        nextBtn.disabled = false;
+        answerEl.disabled = true;
         startTimer();
-
       } else {
-        alert("Respuesta incorrecta. Intenta de nuevo.");
+        feedbackEl.textContent = "Respuesta incorrecta. Intenta de nuevo.";
       }
     }
 
+    function startTimer() {
+      let t = 20;
+      timerEl.classList.remove("hidden");
+      timerEl.textContent = `Avanzando en ${t} segundos...`;
+      timerInterval = setInterval(() => {
+        t--;
+        timerEl.textContent = `Avanzando en ${t} segundos...`;
+        if (t <= 0) {
+          clearInterval(timerInterval);
+          nextQuestion();
+        }
+      }, 1000);
+    }
+
     function nextQuestion() {
-      if (answeredCorrectly[currentQuestion]) {
-        currentQuestion++;
-        showQuestion();
+      if (!numeros[current]) return; 
+      if (current < preguntas.length - 1) {
+        current++;
+        loadQuestion();
+      } else {
+        game.classList.add("hidden");
+        final.classList.remove("hidden");
       }
     }
 
     function prevQuestion() {
-      if (currentQuestion > 0) {
-        currentQuestion--;
-        showQuestion();
+      if (current > 0) {
+        current--;
+        loadQuestion();
       }
     }
 
     function checkFinal() {
-      const input = parseInt(document.getElementById("finalAnswer").value, 10);
-      const correctSum = collectedNumbers.reduce((a, b) => a + b, 0);
-
-      if (input === correctSum) {
-        document.body.innerHTML =
-          '<div class="full-screen">🎉 Pruebas completadas, solicita tu premio! 🎉</div>';
+      const sumaCorrecta = numeros.reduce((a, b) => a + b, 0);
+      const userSum = parseInt(finalInput.value, 10);
+      if (userSum === sumaCorrecta) {
+        errorMsg.textContent = "";
+        finalMsg.textContent = "🎉 Pruebas completadas, solicita tu premio! 🎉";
       } else {
-        alert("Respuesta incorrecta. Revisa tus números.");
+        finalMsg.textContent = "";
+        errorMsg.textContent = "❌ La suma es incorrecta. Intenta de nuevo.";
       }
     }
   </script>
