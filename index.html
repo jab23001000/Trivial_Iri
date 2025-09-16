@@ -84,6 +84,9 @@
     <div id="game" class="hidden">
       <h2 id="question"></h2>
       <input type="text" id="answer" placeholder="Escribe tu respuesta">
+      <div>
+        <button id="checkBtn">Comprobar respuesta</button>
+      </div>
       <div id="feedback"></div>
       <div id="timer" class="hidden"></div>
       <div>
@@ -127,6 +130,7 @@
     const timerEl = document.getElementById("timer");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
+    const checkBtn = document.getElementById("checkBtn");
     const finalInput = document.getElementById("finalInput");
     const checkFinalBtn = document.getElementById("checkFinalBtn");
     const errorMsg = document.getElementById("error-msg");
@@ -135,10 +139,8 @@
     document.getElementById("startBtn").onclick = startGame;
     prevBtn.onclick = prevQuestion;
     nextBtn.onclick = nextQuestion;
+    checkBtn.onclick = checkAnswer;
     checkFinalBtn.onclick = checkFinal;
-    answerEl.addEventListener("keyup", e => {
-      if (e.key === "Enter") checkAnswer();
-    });
 
     function startGame() {
       landing.classList.add("hidden");
@@ -156,6 +158,7 @@
       prevBtn.disabled = current === 0;
       nextBtn.disabled = !numeros[current];
       answerEl.disabled = !!numeros[current];
+      checkBtn.disabled = !!numeros[current];
       if (!numeros[current]) {
         answerEl.focus();
       }
@@ -169,6 +172,7 @@
         feedbackEl.textContent = `¡Correcto! Tu número es: ${numeros[current]}. Anótalo.`;
         nextBtn.disabled = false;
         answerEl.disabled = true;
+        checkBtn.disabled = true;
         startTimer();
       } else {
         feedbackEl.textContent = "Respuesta incorrecta. Intenta de nuevo.";
