@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex"> <!-- Evita que Google indexe la página -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juego Trivial</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    h1 {
+      text-align: center;
+    }
+    .question {
+      display: none;
+      margin-bottom: 20px;
+    }
+    .question.active {
+      display: block;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    .result {
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Juego Trivial</h1>
+
+    <div id="quiz"></div>
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    // ============================
+    // 🔧 CONFIGURACIÓN DE PREGUNTAS
+    // ============================
+    // Aquí editas las preguntas y respuestas correctas.
+    // IMPORTANTE: las respuestas deben ir en minúsculas.
+    const questions = [
+      { q: "¿Cuánto es 5 + 3?", a: "8" },
+      { q: "Capital de Francia:", a: "paris" },
+      { q: "¿Cuál es el planeta más grande del sistema solar?", a: "jupiter" },
+      { q: "¿En qué continente está Egipto?", a: "africa" },
+      { q: "¿Quién pintó la Mona Lisa?", a: "leonardo da vinci" }
+    ];
+
+    let currentQuestion = 0;
+
+    // Renderiza la primera pregunta
+    function showQuestion() {
+      if (currentQuestion < questions.length) {
+        const q = questions[currentQuestion];
+        document.getElementById("quiz").innerHTML = `
+          <div class="question active">
+            <p>${currentQuestion + 1}. ${q.q}</p>
+            <input type="text" id="answer">
+            <button onclick="checkAnswer()">Comprobar</button>
+          </div>
+        `;
+      } else {
+        // Juego terminado → mostrar código secreto
+        const secretCode = Math.floor(100000 + Math.random() * 900000);
+        document.getElementById("quiz").innerHTML = "";
+        document.getElementById("result").textContent =
+          "¡Felicidades! Tu código secreto es: " + secretCode;
+      }
+    }
+
+    // Comprueba la respuesta
+    function checkAnswer() {
+      const input = document.getElementById("answer").value.trim().toLowerCase();
+      if (input === questions[currentQuestion].a) {
+        currentQuestion++;
+        showQuestion();
+      } else {
+        alert("Respuesta incorrecta. Intenta de nuevo.");
+      }
+    }
+
+    // Inicia el juego
+    showQuestion();
+  </script>
+</body>
+</html>
