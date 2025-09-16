@@ -83,9 +83,9 @@
 
     let currentQuestion = 0;
     let collectedNumbers = [];
-    let answeredCorrectly = []; // para saber si ya fue acertada
+    let answeredCorrectly = [];
     let timerInterval;
-    let timeLeft = 10;
+    let timeLeft = 20;
 
     function startGame() {
       document.getElementById("landing").style.display = "none";
@@ -95,15 +95,15 @@
 
     function startTimer() {
       clearInterval(timerInterval);
-      timeLeft = 10;
-      document.getElementById("timer").textContent = "Tiempo: " + timeLeft + "s";
+      timeLeft = 20;
+      document.getElementById("timer").textContent = "Tiempo para anotar: " + timeLeft + "s";
 
       timerInterval = setInterval(() => {
         timeLeft--;
-        document.getElementById("timer").textContent = "Tiempo: " + timeLeft + "s";
+        document.getElementById("timer").textContent = "Tiempo para anotar: " + timeLeft + "s";
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
-          alert("¡Se acabó el tiempo! Vuelve a intentarlo.");
+          nextQuestion(); // pasa automáticamente
         }
       }, 1000);
     }
@@ -112,6 +112,7 @@
       clearInterval(timerInterval);
       const quizDiv = document.getElementById("quiz");
       document.getElementById("message").textContent = "";
+      document.getElementById("timer").textContent = "";
 
       if (currentQuestion < questions.length) {
         const q = questions[currentQuestion];
@@ -132,8 +133,6 @@
           document.getElementById("message").textContent =
             "Ya acertaste. Tu número fue: " + questions[currentQuestion].n;
           document.getElementById("nextBtn").disabled = false;
-        } else {
-          startTimer();
         }
 
       } else {
@@ -146,22 +145,23 @@
             <button onclick="checkFinal()">Enviar</button>
           </div>
         `;
-        document.getElementById("timer").textContent = "";
       }
     }
 
     function checkAnswer() {
       const input = document.getElementById("answer").value.trim().toLowerCase();
       if (input === questions[currentQuestion].a) {
-        clearInterval(timerInterval);
         const num = questions[currentQuestion].n;
         collectedNumbers[currentQuestion] = num;
         answeredCorrectly[currentQuestion] = true;
 
         document.getElementById("message").textContent =
           "¡Correcto! Tu número es: " + num + ". Anótalo.";
-
         document.getElementById("nextBtn").disabled = false;
+
+        // Arranca temporizador de 20s solo tras acertar
+        startTimer();
+
       } else {
         alert("Respuesta incorrecta. Intenta de nuevo.");
       }
