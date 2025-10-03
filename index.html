@@ -16,7 +16,7 @@
       height: 100vh;
     }
     #app {
-      max-width: 600px;
+      max-width: 700px;
       background: white;
       padding: 2rem;
       border-radius: 12px;
@@ -33,7 +33,7 @@
       padding: 0.5rem;
       font-size: 1rem;
       width: 80%;
-      margin-top: 1rem;
+      margin-top: 0.5rem;
     }
     button {
       margin: 1rem 0.5rem;
@@ -62,6 +62,9 @@
       color: red;
       font-weight: bold;
     }
+    .sub-question {
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -83,11 +86,8 @@
     <!-- Juego -->
     <div id="game" class="hidden">
       <h2 id="question"></h2>
-      <input type="text" id="answer" placeholder="Escribe tu respuesta">
-      <div>
-        <button id="checkBtn">Comprobar respuesta</button>
-      </div>
       <div id="feedback"></div>
+      <button id="checkBtn">Comprobar respuesta</button>
       <div id="timer" class="hidden"></div>
       <div>
         <button id="prevBtn">Anterior</button>
@@ -107,21 +107,27 @@
   </div>
 
   <script>
-    // Preguntas
-   const preguntas = [
-          { q: "Nombre de la calle donde vive Iñigo con Silvia en Pamplona", a: "teobaldos", n: 12 },
-          { 
-            q: 'Ve el siguiente video: <a href="https://www.youtube.com/watch?v=N3PmMLH0ji0" target="_blank">Abrir video en YouTube</a><br> ', 
-            sub: 'En el video se dice la siguiente frase: Estos cachorros de tejón han salido de su madriguera para...', 
-            a: "explorar", 
-            n: 8 
-          },
-          { q: "Color del cielo en un día despejado", a: "azul", n: 15 },
-          { q: "¿Cuántas patas tiene una araña?", a: "8", n: 20 }
-        ];
+    // Preguntas: Ejemplo de 1 múltiple + 3 normales
+    const preguntas = [
+      { 
+        q: "Preguntas sobre animales",
+        subQuestions: [
+          { text: "¿Cuántas patas tiene una araña?", answer: "8" },
+          { text: "¿Qué animal ladra?", answer: "perro" }
+        ],
+        n: 10
+      },
+      { q: "Calle donde vive Iñigo Martinez en Pamplona", a: "teobaldos", n: 12 },
+      { 
+        q: "Ve el siguiente video:", 
+        sub: '<a href="https://www.youtube.com/watch?v=N3PmMLH0ji0" target="_blank">Abrir video en YouTube</a><br>En el video se dice la frase: Estos cachorros de tejón han salido de su madriguera para...', 
+        a: "explorar", 
+        n: 8 
+      },
+      { q: "Color del cielo en un día despejado", a: "azul", n: 15 }
+    ];
 
     let current = 0;
-    let respuestas = Array(preguntas.length).fill(null);
     let numeros = Array(preguntas.length).fill(null);
     let timerInterval;
 
@@ -130,7 +136,6 @@
     const final = document.getElementById("final");
 
     const questionEl = document.getElementById("question");
-    const answerEl = document.getElementById("answer");
     const feedbackEl = document.getElementById("feedback");
     const timerEl = document.getElementById("timer");
     const prevBtn = document.getElementById("prevBtn");
@@ -147,6 +152,13 @@
     checkBtn.onclick = checkAnswer;
     checkFinalBtn.onclick = checkFinal;
 
+    function normalizar(texto) {
+      return texto
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
     function startGame() {
       landing.classList.add("hidden");
       game.classList.remove("hidden");
@@ -154,40 +166,81 @@
     }
 
     function loadQuestion() {
-          clearInterval(timerInterval);
-          timerEl.classList.add("hidden");
-          timerEl.textContent = "";
-          answerEl.value = respuestas[current] || "";
-          feedbackEl.textContent = numeros[current] ? `¡Correcto! Tu número es: ${numeros[current]}` : "";
-        
-          if (preguntas[current].sub) {
-            questionEl.innerHTML = `<strong>${preguntas[current].q}</strong><br><small>${preguntas[current].sub}</small>`;
-          } else {
-            questionEl.textContent = preguntas[current].q;
-          }
-        
-          prevBtn.disabled = current === 0;
-          nextBtn.disabled = !numeros[current];
-          answerEl.disabled = !!numeros[current];
-          checkBtn.disabled = !!numeros[current];
-          if (!numeros[current]) {
-            answerEl.focus();
-          }
-        }
+      clearInterval(timerInterval);
+      timerEl.classList.add("hidden");
+      timerEl.textContent = "";
+      feedbackEl.innerHTML = "";
 
+      let currentQ = preguntas[current];
+
+      if (currentQ.sub) {
+        questionEl.innerHTML = `<strong>${currentQ.q}</strong><br><small>${currentQ.sub}</small>`;
+      } else {
+        questionEl.textContent = currentQ.q;
+      }
+
+      // Generar inputs
+      if (currentQ.subQuestions) {
+        currentQ.subQuestions.forEach((sq, idx) => {
+          const div = document.createElement("div");
+          div.classList.add("sub-question");
+          div.innerHTML = `
+            <p>${sq.text}</p>
+            <input type="text" id="ans-${idx}" placeholder="Escribe tu respuesta">
+            <span id="res-${idx}"></span>
+          `;
+          feedbackEl.appendChild(div);
+        });
+      } else {
+        const div = document.createElement("div");
+        div.innerHTML = `<input type="text" id="answer" placeholder="Escribe tu respuesta">`;
+        feedbackEl.appendChild(div);
+      }
+
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = !numeros[current];
+      checkBtn.disabled = !!numeros[current];
+    }
 
     function checkAnswer() {
-      const respuesta = answerEl.value.trim().toLowerCase();
-      if (respuesta === preguntas[current].a) {
-        respuestas[current] = respuesta;
-        numeros[current] = preguntas[current].n;
-        feedbackEl.textContent = `¡Correcto! Tu número es: ${numeros[current]}. Anótalo.`;
-        nextBtn.disabled = false;
-        answerEl.disabled = true;
-        checkBtn.disabled = true;
-        startTimer();
+      const currentQ = preguntas[current];
+
+      if (currentQ.subQuestions) {
+        let allCorrect = true;
+
+        currentQ.subQuestions.forEach((sq, idx) => {
+          const userResp = normalizar(document.getElementById(`ans-${idx}`).value.trim());
+          const correct = normalizar(sq.answer);
+
+          const resEl = document.getElementById(`res-${idx}`);
+          if (userResp === correct) {
+            resEl.textContent = " ✅ Correcto";
+          } else {
+            resEl.textContent = " ❌ Incorrecto";
+            allCorrect = false;
+          }
+        });
+
+        if (allCorrect) {
+          numeros[current] = currentQ.n;
+          nextBtn.disabled = false;
+          checkBtn.disabled = true;
+          startTimer();
+        }
+
       } else {
-        feedbackEl.textContent = "Respuesta incorrecta. Intenta de nuevo.";
+        const respuesta = normalizar(document.getElementById("answer").value.trim());
+        const correcta = normalizar(currentQ.a);
+
+        if (respuesta === correcta) {
+          numeros[current] = currentQ.n;
+          feedbackEl.innerHTML += `<p>¡Correcto! Tu número es: ${numeros[current]}. Anótalo.</p>`;
+          nextBtn.disabled = false;
+          checkBtn.disabled = true;
+          startTimer();
+        } else {
+          feedbackEl.innerHTML += `<p>❌ Respuesta incorrecta. Intenta de nuevo.</p>`;
+        }
       }
     }
 
@@ -237,10 +290,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
