@@ -13,27 +13,26 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
     }
     #app {
-      max-width: 700px;
+      max-width: 800px;
       background: white;
       padding: 2rem;
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       text-align: center;
+      margin: 1rem;
     }
-    h1, h2, h3 {
-      margin-bottom: 1rem;
-    }
-    .hidden {
-      display: none;
-    }
-    input[type="text"], input[type="number"] {
-      padding: 0.5rem;
+    h1, h2, h3 { margin-bottom: 1rem; }
+    .hidden { display: none; }
+    input[type="text"] {
+      padding: 0.6rem;
       font-size: 1rem;
-      width: 80%;
-      margin-top: 0.5rem;
+      width: 85%;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
     button {
       margin: 1rem 0.5rem;
@@ -54,17 +53,26 @@
       color: #d9534f;
       margin-top: 1rem;
     }
-    #final-msg {
-      font-size: 1.5rem;
-      color: green;
-    }
-    #error-msg {
-      color: red;
+    .sub-question { margin-top: 1rem; text-align: left; }
+    .sub-question p { margin: 0.5rem 0 0.25rem; }
+    .badge {
+      display: inline-block;
+      background: #eef7ee;
+      color: #167b16;
+      border: 1px solid #bfe5bf;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      margin-top: 0.75rem;
       font-weight: bold;
     }
-    .sub-question {
-      margin-top: 1rem;
+    .muted { color: #666; font-size: 0.95rem; }
+    #union-result {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      margin-top: 0.5rem;
     }
+    a { color: #0d6efd; }
   </style>
 </head>
 <body>
@@ -73,12 +81,12 @@
     <div id="landing">
       <h1>Bienvenidos Iñigo y Ainara</h1>
       <h2>¿Listos para comenzar vuestro Trivial?</h2>
-      <p>
+      <p class="muted">
         Vais a comenzar una serie de preguntas.<br>
         Las deberéis responder correctamente para obtener un número que debéis anotar.<br>
         Para cada pregunta habrá un número.<br>
-        La pregunta final será la UNION de todos los números anteriores.<br>
-        Que será un número de teléfono al cual deberéis enviar un whatsapp con la frase: QUIERO MI DINERO
+        La <strong>prueba final</strong> será la <strong>UNIÓN</strong> de todos los números anteriores.<br>
+        Será un número de teléfono al cual deberéis enviar un WhatsApp con la frase: <strong>QUIERO MI DINERO</strong>.
       </p>
       <button id="startBtn">Comenzar</button>
     </div>
@@ -95,19 +103,21 @@
       </div>
     </div>
 
-    <!-- Final -->
+    <!-- Final (sin input: muestra la unión de todos los N) -->
     <div id="final" class="hidden">
-      <h2>Pregunta final</h2>
-      <p>Introduce la suma de todos los números obtenidos:</p>
-      <input type="number" id="finalInput">
-      <button id="checkFinalBtn">Comprobar</button>
-      <div id="error-msg"></div>
-      <div id="final-msg"></div>
+      <h2>Resultado final</h2>
+      <p>La unión de todos los números obtenidos es:</p>
+      <div id="union-result"></div>
+      <p class="muted" style="margin-top:1rem;">
+        Ese es el número al cual deberéis enviar un WhatsApp con la frase: <strong>QUIERO MI DINERO</strong>.
+      </p>
     </div>
   </div>
 
   <script>
-    // Preguntas: Ejemplo de 1 múltiple + 3 normales
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Preguntas (múltiples y simples). Normaliza respuestas (mayúsc/tildes).
+    // ─────────────────────────────────────────────────────────────────────────────
     const preguntas = [
       { 
         q: "Preguntas sobre ciclismo",
@@ -118,10 +128,10 @@
         n: 6
       },
       { 
-        q: "Ve el siguiente video:", 
-        sub: '<a href="https://www.youtube.com/watch?v=N3PmMLH0ji0" target="_blank">Abrir video en YouTube</a><br>En el video se dice la frase: Estos cachorros de tejón han salido de su madriguera para...', 
-        a: "explorar", 
-        n: 9 
+        q: "Ve el siguiente video:",
+        sub: '<a href="https://www.youtube.com/watch?v=N3PmMLH0ji0" target="_blank">Abrir video en YouTube</a><br>En el video se dice la frase: Estos cachorros de tejón han salido de su madriguera para...',
+        a: "explorar",
+        n: 9
       },
       { 
         q: "Preguntas sobre + ciclismo",
@@ -132,32 +142,31 @@
         n: 0
       },
       { 
-        q: "Pregunta sobre squash:", 
-        sub: '¿Quién fue el primer jugador en ganar el título de Campeón del Mundo de Squash PSA en 1976?', 
-        a: "Geoff Hunt", 
-        n: 93 
+        q: "Pregunta sobre squash:",
+        sub: '¿Quién fue el primer jugador en ganar el título de Campeón del Mundo de Squash PSA en 1976?',
+        a: "Geoff Hunt",
+        n: 93
       },
       { 
-        q: "Ve el siguiente video:", 
-        sub: '<a href="https://www.youtube.com/watch?v=Ev2QXUg3I4A" target="_blank">Abrir video en YouTube</a><br>Cuando quedan 7.9km para la cima, qué distancia, en segundos, saca la cabeza de carrera al siguiente grupo', 
-        a: "explorar", 
-        n: 45 
+        q: "Ve el siguiente video:",
+        sub: '<a href="https://www.youtube.com/watch?v=Ev2QXUg3I4A" target="_blank">Abrir video en YouTube</a><br>Cuando quedan 7.9km para la cima, ¿qué distancia, en segundos, saca la cabeza de carrera al siguiente grupo?',
+        a: "explorar",
+        n: 45
       },
       { 
-        q: "Ve el siguiente video:", 
-        sub: '<a href="https://www.youtube.com/watch?v=J9kgpvnErT8" target="_blank">Abrir video en YouTube</a><br>Según la teoría terraplanista que se explica en el video, cuál es el continente con mayor superficie', 
-        a: "antártico", 
-        n: 94 
-      },
-      
-
-      
+        q: "Ve el siguiente video:",
+        sub: '<a href="https://www.youtube.com/watch?v=J9kgpvnErT8" target="_blank">Abrir video en YouTube</a><br>Según la teoría terraplanista que se explica en el video, ¿cuál es el continente con mayor superficie?',
+        a: "antártico",
+        n: 94
+      }
     ];
 
+    // Estado
     let current = 0;
-    let numeros = Array(preguntas.length).fill(null);
+    let numeros = Array(preguntas.length).fill(null); // guarda N cuando está correcta
     let timerInterval;
 
+    // Elementos
     const landing = document.getElementById("landing");
     const game = document.getElementById("game");
     const final = document.getElementById("final");
@@ -168,19 +177,16 @@
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
     const checkBtn = document.getElementById("checkBtn");
-    const finalInput = document.getElementById("finalInput");
-    const checkFinalBtn = document.getElementById("checkFinalBtn");
-    const errorMsg = document.getElementById("error-msg");
-    const finalMsg = document.getElementById("final-msg");
+    const unionResult = document.getElementById("union-result");
 
     document.getElementById("startBtn").onclick = startGame;
     prevBtn.onclick = prevQuestion;
     nextBtn.onclick = nextQuestion;
     checkBtn.onclick = checkAnswer;
-    checkFinalBtn.onclick = checkFinal;
 
+    // Normaliza mayúsculas/minúsculas y elimina tildes
     function normalizar(texto) {
-      return texto
+      return (texto || "")
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
@@ -198,15 +204,16 @@
       timerEl.textContent = "";
       feedbackEl.innerHTML = "";
 
-      let currentQ = preguntas[current];
+      const currentQ = preguntas[current];
 
+      // Título + subtítulo (con enlace)
       if (currentQ.sub) {
         questionEl.innerHTML = `<strong>${currentQ.q}</strong><br><small>${currentQ.sub}</small>`;
       } else {
         questionEl.textContent = currentQ.q;
       }
 
-      // Generar inputs
+      // Generar inputs (múltiple o simple)
       if (currentQ.subQuestions) {
         currentQ.subQuestions.forEach((sq, idx) => {
           const div = document.createElement("div");
@@ -224,9 +231,37 @@
         feedbackEl.appendChild(div);
       }
 
+      // Si ya estaba resuelta, muestro el número y bloqueo inputs/botón
+      if (numeros[current] !== null) {
+        mostrarNumeroYAsegurarBloqueo(currentQ);
+      }
+
       prevBtn.disabled = current === 0;
-      nextBtn.disabled = !numeros[current];
-      checkBtn.disabled = !!numeros[current];
+      nextBtn.disabled = numeros[current] === null; // sólo activo si está resuelta
+      checkBtn.disabled = numeros[current] !== null;
+    }
+
+    function mostrarNumeroYAsegurarBloqueo(currentQ) {
+      // Aviso del número revelado
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.textContent = `¡Correcto! Tu número es: ${numeros[current]}.`;
+      feedbackEl.appendChild(badge);
+
+      // Bloquear inputs y poner marcas si es múltiple
+      if (currentQ.subQuestions) {
+        currentQ.subQuestions.forEach((sq, idx) => {
+          const input = document.getElementById(`ans-${idx}`);
+          const resEl = document.getElementById(`res-${idx}`);
+          if (input) input.disabled = true;
+          if (resEl && !resEl.textContent.trim()) {
+            resEl.textContent = " ✅ Correcto";
+          }
+        });
+      } else {
+        const input = document.getElementById("answer");
+        if (input) input.disabled = true;
+      }
     }
 
     function checkAnswer() {
@@ -250,23 +285,29 @@
 
         if (allCorrect) {
           numeros[current] = currentQ.n;
-          nextBtn.disabled = false;
           checkBtn.disabled = true;
+          nextBtn.disabled = false;
           startTimer();
+          mostrarNumeroYAsegurarBloqueo(currentQ);
         }
 
       } else {
         const respuesta = normalizar(document.getElementById("answer").value.trim());
-        const correcta = normalizar(currentQ.a);
+        // Permite string o array de respuestas válidas
+        const correctas = Array.isArray(currentQ.a)
+          ? currentQ.a.map(normalizar)
+          : [normalizar(currentQ.a)];
 
-        if (respuesta === correcta) {
+        if (correctas.includes(respuesta)) {
           numeros[current] = currentQ.n;
-          feedbackEl.innerHTML += `<p>¡Correcto! Tu número es: ${numeros[current]}. Anótalo.</p>`;
-          nextBtn.disabled = false;
           checkBtn.disabled = true;
+          nextBtn.disabled = false;
           startTimer();
+          mostrarNumeroYAsegurarBloqueo(currentQ);
         } else {
-          feedbackEl.innerHTML += `<p>❌ Respuesta incorrecta. Intenta de nuevo.</p>`;
+          const p = document.createElement("p");
+          p.textContent = "❌ Respuesta incorrecta. Intenta de nuevo.";
+          feedbackEl.appendChild(p);
         }
       }
     }
@@ -275,6 +316,7 @@
       let t = 20;
       timerEl.classList.remove("hidden");
       timerEl.textContent = `Avanzando en ${t} segundos...`;
+      clearInterval(timerInterval);
       timerInterval = setInterval(() => {
         t--;
         timerEl.textContent = `Avanzando en ${t} segundos...`;
@@ -286,13 +328,16 @@
     }
 
     function nextQuestion() {
-      if (!numeros[current]) return; 
+      if (numeros[current] === null) return;
       if (current < preguntas.length - 1) {
         current++;
         loadQuestion();
       } else {
+        // Fin del juego: mostrar la UNIÓN de todos los N
         game.classList.add("hidden");
         final.classList.remove("hidden");
+        const union = numeros.join("");
+        unionResult.textContent = union;
       }
     }
 
@@ -302,23 +347,9 @@
         loadQuestion();
       }
     }
-
-    function checkFinal() {
-      const sumaCorrecta = numeros.reduce((a, b) => a + b, 0);
-      const userSum = parseInt(finalInput.value, 10);
-      if (userSum === sumaCorrecta) {
-        errorMsg.textContent = "";
-        finalMsg.textContent = "🎉 Pruebas completadas, solicita tu premio! 🎉";
-      } else {
-        finalMsg.textContent = "";
-        errorMsg.textContent = "❌ La suma es incorrecta. Intenta de nuevo.";
-      }
-    }
   </script>
 </body>
 </html>
-
-
 
 
 
